@@ -1,38 +1,77 @@
 # Description
 
-Manages explicit permissions. It lets you define allows or denies or a mixture of both
-It also lets you define level based permissions i.e. organizational or system level overrides
+## Summary
+
+Rushiro takes a source hash (of permissions definitions) and gives you an object that
+you use to test for permitted access.
+
+## Strategies
+
+- Deny all allow some, use the AllowBasedControl class
+- Allow all deny some, use the DenyBasedControl class
+
+## Permissions
+
+Manages explicit permissions. It lets you define 'allows' or 'denies' permissions.
+You can define level based permissions i.e. individual, organization or 
+system. Organization or system levels are meant for short term overrides.
+Set long term permissions at the individual level.
+
+For more information on this check out [Apache Shiro permissions][shiro_p].
 
 The permission part has three pipe separated sections, domain, action and instance:
-    Domain - aka resources, e.g. webpages, db entities, domain models or services
-    Action - these entries are from the set of actions available for the domain
-    Instance - these entries are 'labels' you have given to instances of the domain,
-      e.g. a particular webpage, a uuid or unique id of a db record
 
-    Multiple comma separated entries are allowed as is the * wildcard
+- Domain - aka resources, e.g. webpages, db entities, domain models or services
+- Action - these entries are from the set of actions available for the domain
+- Instance - these entries are 'labels' you have given to instances of the domain,
+  e.g. a particular webpage, a uuid or unique id of a db record
+Note: Multiple comma separated entries are allowed, as is the * wildcard
 
 
 example: this hash is processed into a hierarchy of objects
+``` ruby
+perm = {
+  allows: {
+    individual: [
+      "feature|create,read,update|feat-x",
+      "page|*|posts",
+      "company|read"
+      "company|update|5b90a720-e6b0-012e-dc18-782bcb979e60"
+    ],
+    organisation: [],
+    system: []
+  },
+  denies: {}
+}
 
-    perm = {
-      allows: {
-        individual: [
-          "feature|create,read,update|feat-x",
-          "page|*|posts",
-          "company|read"
-          "company|update|5b90a720-e6b0-012e-dc18-782bcb979e60"
-        ],
-        organisation: [],
-        system: []
-      },
-      denies: {}
-    }
+access_control = AllowBasedControl.new(perm)
+access_control.permitted?("company|read|5b90a720-e6b0-012e-dc18-782bcb979e60") ==> true
+access_control.permitted?("feature|delete|feat-x") ==> false
+```
 
-    access_control = AccessControlHash.new(perm)
-    access_control.permitted?("company|read|5b90a720-e6b0-012e-dc18-782bcb979e60") ==> true
-    access_control.permitted?("feature|delete|feat-x") ==> false
+Read the specs for more usage examples.
 
+## Source Hash
 
+Typically the source hash will be stored in a document database directly as a hash field
+in the User record (see [Subject][shiro_s]). In most cases this would be the current_users db document.
+
+## Authorization
+
+The permitted?(permission) method is called to check authorization. The string you pass
+in is obtained from metadata in your application.  It should be specific, exact domain,
+action and instance.
+
+# Future
+
+## Roles
+
+A chaining mechanism is needed. References to other Rushiro control objects are assigned
+to the current_user's Rushiro control and permission is tested through the chain.
+
+## Mixed Mode
+
+The jury is still out on whether it is practical to have a mixture of allows and denies.
 
 # Development
 
@@ -49,7 +88,7 @@ Author:: Lee Henson (<leemhenson@gmail.com>)
 
 Contributors:: https://github.com/guyboertje/rushiro/contributors
 
-Copyright:: 2011, Guy Boertje
+Copyright (c) 2011, Guy Boertje
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -65,3 +104,5 @@ limitations under the License.
 
 [repo]:         https://github.com/guyboertje/rushiro
 [issues]:       https://github.com/guyboertje/rushiro/issues
+[shiro_p]:      http://shiro.apache.org/permissions.html
+[shiro_s]:      http://shiro.apache.org/subject.html
