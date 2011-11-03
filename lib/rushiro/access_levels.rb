@@ -1,14 +1,14 @@
 module Rushiro
   class AccessLevels
-    attr_reader :individual, :organisation, :musicglue
+    attr_reader :individual, :organization, :musicglue
     def initialize(hash)
       @individual = Permissions.new(hash[:individual] || [])
-      @organisation = Permissions.new(hash[:organisation] || [])
+      @organization = Permissions.new(hash[:organization] || [])
       @system = Permissions.new(hash[:system] || [])
     end
 
     def permitted?(perm)
-      @system.permitted?(perm) || @organisation.permitted?(perm) || @individual.permitted?(perm)
+      @system.permitted?(perm) || @organization.permitted?(perm) || @individual.permitted?(perm)
     end
 
     def add_permission(perm)
@@ -16,8 +16,8 @@ module Rushiro
       case level
       when 'individual'
         @individual.add_permission(rest)
-      when 'organisation'
-        @organisation.add_permission(rest)
+      when 'organization'
+        @organization.add_permission(rest)
       when 'system'
         @system.add_permission(rest)
       else
@@ -30,8 +30,8 @@ module Rushiro
       case level
       when 'individual'
         @individual.remove_permission(rest)
-      when 'organisation'
-        @organisation.remove_permission(rest)
+      when 'organization'
+        @organization.remove_permission(rest)
       when 'system'
         @system.remove_permission(rest)
       else
@@ -39,7 +39,7 @@ module Rushiro
       end
     end
     def serialize
-      Hash[:individual, @individual.serialize, :organisation, @organisation.serialize, :system, @system.serialize]
+      Hash[:individual, @individual.serialize, :organization, @organization.serialize, :system, @system.serialize]
     end
   end
 end

@@ -38,7 +38,7 @@ perm = {
       "company|read"
       "company|update|5b90a720-e6b0-012e-dc18-782bcb979e60"
     ],
-    organisation: [],
+    organization: [],
     system: []
   },
   denies: {}
