@@ -3,7 +3,7 @@ module Rushiro
   FSEP = ','
   class AccessControlHash
     attr_reader :allows, :denies, :original, :dirty
-    def initialize(hash)
+    def initialize(hash = {})
       @allows = AccessLevels.new(hash[:allows] || {})
       @denies = AccessLevels.new(hash[:denies] || {})
       @dirty = false
@@ -11,7 +11,7 @@ module Rushiro
     end
 
     def permitted?(perm)
-      # virtual
+      # virtual, define in subclass
     end
 
     def add_permission(perm) #as string "allow|individual|domain(|action(|instance))"
@@ -44,6 +44,10 @@ module Rushiro
       else
         Hash[:allows, @allows.serialize, :denies, @denies.serialize]
       end
+    end
+
+    def no_longer_dirty
+      @dirty = false
     end
   end
 
