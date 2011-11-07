@@ -35,6 +35,7 @@ One suggestion might be: Domain|Action|Instance
 Note: Multiple comma separated entries are allowed, as is the * wildcard
 
 example: this hash is processed into a hierarchy of objects
+
 ``` ruby
 perm = {
   allows: {

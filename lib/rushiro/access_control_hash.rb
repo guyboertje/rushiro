@@ -13,7 +13,7 @@ module Rushiro
     end
 
     def permitted?(perm)
-      # virtual
+      # virtual, define in subclass
     end
     
     def pristine?
@@ -62,6 +62,10 @@ module Rushiro
       else
         Hash[:name, @name, :allows, @allows.serialize, :denies, @denies.serialize]
       end
+    end
+
+    def no_longer_dirty
+      @dirty = false
     end
   end
 
