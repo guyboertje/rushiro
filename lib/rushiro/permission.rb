@@ -5,6 +5,7 @@ module Rushiro
     WildCard = :*
 
     def initialize(permission)
+      raise ArgumentError.new("Invalid permission, nil parameter") if permission.nil?
       raise ArgumentError.new("Invalid permission, empty string") if permission.empty?
       @original = permission
       @parts = permission.split(GSEP).map {|part| part.split(FSEP).map(&:to_sym)}

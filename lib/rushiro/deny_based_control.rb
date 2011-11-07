@@ -1,9 +1,9 @@
 module Rushiro
   class DenyBasedControl < AccessControlHash
     def permitted?(perm)
-      return true if !@dirty && @original.empty?
+      return true if pristine?
       return false if @denies.permitted?(perm)
-      true
+      !subordinates_permitted?(perm)
     end
   end
 end

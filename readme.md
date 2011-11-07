@@ -10,23 +10,29 @@ you use to test for permitted access.
 - Deny all allow some, use the AllowBasedControl class
 - Allow all deny some, use the DenyBasedControl class
 
+For example, Deny all allow some might be used for unauthenticated Users while
+Allow all deny some might be used for authenticated users
+
 ## Permissions
 
 Manages explicit permissions. It lets you define 'allows' or 'denies' permissions.
 You can define level based permissions i.e. individual, organization or 
 system. Organization or system levels are meant for short term overrides.
-Set long term permissions at the individual level.
+Set long term permissions at the individual level. System level permissions are
+tested first and therefore can't be overridden and individual level permissions
+are checked last so can be overridden by organization and system permissions.
 
 For more information on this check out [Apache Shiro permissions][shiro_p].
 
-The permission part has three pipe separated sections, domain, action and instance:
+The permission part has several pipe separated sections, you are completely free
+to choose the schema, but remember that evaluation is on a left to right basis.
 
+One suggestion might be: Domain|Action|Instance
 - Domain - aka resources, e.g. webpages, db entities, domain models or services
-- Action - these entries are from the set of actions available for the domain
+- Action - entries from the set of actions available for the domain (crud, rw, use/manage)
 - Instance - these entries are 'labels' you have given to instances of the domain,
   e.g. a particular webpage, a uuid or unique id of a db record
 Note: Multiple comma separated entries are allowed, as is the * wildcard
-
 
 example: this hash is processed into a hierarchy of objects
 ``` ruby
@@ -53,25 +59,42 @@ Read the specs for more usage examples.
 
 ## Source Hash
 
-Typically the source hash will be stored in a document database directly as a hash field
-in the User record (see [Subject][shiro_s]). In most cases this would be the current_users db document.
+The source hash might be stored in a document database directly as a hash field
+in the User record (see [Subject][shiro_s]). In web frameworks, after authentication,
+the current_user object could have a Rushiro Control object for authorization checks.
+Please check whether your system creates a new instance of the User object for each 
+request as the overhead of initializing the rushiro control might become a problem. If so
+then some form of instance cache might be a solution.
 
 ## Authorization
 
 The permitted?(permission) method is called to check authorization. The string you pass
-in is obtained from metadata in your application.  It should be specific, exact domain,
-action and instance.
+in is obtained from metadata in your application.  It should be specific, exactly
+identifying the authorization sought.
 
-# Future
+## Subordinate Controls
+
+It is possible to create a hierarchy of Controls by using the add_subordinate method.
+No attempt at circular reference detection is made so caution is advised.
 
 ## Roles
 
-A chaining mechanism is needed. References to other Rushiro control objects are assigned
-to the current_user's Rushiro control and permission is tested through the chain.
+It is possible to use subordinates for Roles.  That is, to store Role source hashes in a
+different table/collection and to add instances of these as subordinates to a users 
+Control.
+
+# Future
 
 ## Mixed Mode
 
-The jury is still out on whether it is practical to have a mixture of allows and denies.
+The jury is still out on whether it is practical to have a mixture of 'allows' and 'denies'
+in the same control.
+
+## Self-loading
+
+It would be cool to use the db document itself as the source when creating instances. Then
+reloading and saving would be possible.  Especially with Subordinates having Role based
+permissions which could periodically check if they have been updated and reload themselves.
 
 # Development
 

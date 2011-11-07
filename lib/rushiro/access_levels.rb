@@ -21,7 +21,7 @@ module Rushiro
       when 'system'
         @system.add_permission(rest)
       else
-        raise ArgumentError.new("Could not add permission for level: #{level} of #{level}#{SEP}#{perm}")
+        raise ArgumentError.new("Could not add permission for level: #{level} of #{level}#{GSEP}#{perm}")
       end
     end
 
@@ -35,7 +35,7 @@ module Rushiro
       when 'system'
         @system.remove_permission(rest)
       else
-        raise ArgumentError.new("Could not remove permission for level: #{level} of #{level}#{SEP}#{rest}")
+        raise ArgumentError.new("Could not remove permission for level: #{level} of #{level}#{GSEP}#{rest}")
       end
     end
     def serialize
