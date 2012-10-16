@@ -2,34 +2,56 @@ module Rushiro
   GSEP = '|'
   FSEP = ','
   class AccessControlHash
-    attr_reader :allows, :denies, :original, :dirty
+    attr_reader :allows, :denies, :original, :dirty, :kind
     def initialize(hash)
       @allows = AccessLevels.new(hash[:allows] || hash[:allow] || {})
       @denies = AccessLevels.new(hash[:denies] || hash[:deny] || {})
       @name = hash.fetch(:name, 'Root')
       @dirty = false
       @original = hash
+      @allow_subs = []
+      @deny_subs  = []
       @subordinates = []
+      @kind = nil
+    end
+
+    def subordinates
+      @allow_subs + @deny_subs
     end
 
     def permitted?(perm)
-      # virtual, define in subclass
+      return denying? if pristine?
+      rules = allowing? ? @allows : @denies
+      return allowing? if rules.permitted?(perm)
+      subordinates_permitted?(perm)
     end
-    
+
     def pristine?
-      @subordinates.empty? && !@dirty && @original.empty?
+      subordinates.empty? && !@dirty && @original.empty?
     end
 
     def subordinates_permitted?(perm)
-      return false if @subordinates.empty?
-      @subordinates.each do |sub|
+      return denying? if subordinates.empty?
+      @deny_subs.each do |sub|
+        return false if sub.permitted?(perm)
+      end
+      @allow_subs.each do |sub|
         return true if sub.permitted?(perm)
       end
-      false
+      denying?
+    end
+
+    def denying?
+      :deny == kind
+    end
+
+    def allowing?
+      :allow == kind
     end
 
     def add_subordinate(sub)
-      @subordinates << sub
+      @allow_subs << sub if sub.allowing?
+      @deny_subs << sub if sub.denying?
     end
 
     def add_permission(perm) #as string "allow|individual|domain(|action(|instance))"

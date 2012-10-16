@@ -18,9 +18,9 @@ module Rushiro
         access_control.add_permission("denies|individual|company|edit|acme-123")
         access_control.dirty.should be_true
         access_control.serialize.should_not == {}
-        access_control.permitted?("page|view|posts").should be_true
         access_control.permitted?("company|view|acme-125").should be_true
         access_control.permitted?("company|edit|acme-123").should be_false
+        access_control.permitted?("page|view|posts").should be_true
       end
     end
 
@@ -29,9 +29,9 @@ module Rushiro
       it "should remove the permission" do
         access_control.add_permission("denies|individual|company|edit|acme-123")
         access_control.add_permission("denies|organization|page|edit")
-        access_control.permitted?("page|view|settings").should be_true
         access_control.permitted?("page|edit|settings").should be_false
         access_control.permitted?("company|edit|acme-123").should be_false
+        access_control.permitted?("page|view|settings").should be_true
         access_control.remove_permission("denies|organization|page|edit")
         access_control.permitted?("page|view|settings").should be_true
         access_control.permitted?("page|edit|settings").should be_true
@@ -91,6 +91,24 @@ module Rushiro
         access_control.permitted?("page|view|posts").should be_true
         access_control.serialize.should == {}
         access_control.dirty.should be_false
+      end
+    end
+  end
+
+  describe "Using a mix of main vs subordinate Access Control" do
+    let(:access_control) { DenyBasedControl.new(acl)}
+    let(:sub_control) { AllowBasedControl.new(sub_acl)}
+    describe "with subordinate having set permissions" do
+      let(:acl) { Hash.new }
+      let(:sub_acl) { Hash[:name, 'Sub4test'] }
+      it "should allow some" do
+        access_control.add_permission("denies|organization|company|acme-123|*|event")
+        sub_control.add_permission("allows|system|*")
+        access_control.add_subordinate(sub_control)
+        access_control.permitted?("page|view|posts").should be_true
+        access_control.permitted?("company|acme-123|edit|event").should be_false
+        access_control.serialize.should_not == {}
+        access_control.dirty.should be_true
       end
     end
   end
