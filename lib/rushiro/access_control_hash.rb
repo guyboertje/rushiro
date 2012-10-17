@@ -2,12 +2,12 @@ module Rushiro
   GSEP = '|'
   FSEP = ','
   class AccessControlHash
-    attr_reader :allows, :denies, :original, :dirty
+    attr_reader :allows, :denies, :original, :changed
     def initialize(hash)
       @allows = AccessLevels.new(hash[:allows] || hash[:allow] || {})
       @denies = AccessLevels.new(hash[:denies] || hash[:deny] || {})
       @name = hash.fetch(:name, 'Root')
-      @dirty = false
+      @changed = false
       @original = hash
       @subordinates = []
     end
@@ -15,9 +15,9 @@ module Rushiro
     def permitted?(perm)
       # virtual, define in subclass
     end
-    
+
     def pristine?
-      @subordinates.empty? && !@dirty && @original.empty?
+      @subordinates.empty? && !@changed && @original.empty?
     end
 
     def subordinates_permitted?(perm)
@@ -36,9 +36,9 @@ module Rushiro
       grant, rest = perm.split(GSEP, 2)
       case grant
       when 'allows', 'allow'
-        @allows.add_permission(rest) and @dirty = true
+        @allows.add_permission(rest) and @changed = true
       when 'denies', 'deny'
-        @denies.add_permission(rest) and @dirty = true
+        @denies.add_permission(rest) and @changed = true
       else
         raise ArgumentError.new("Could not add permission for: #{grant}, use allows,allow,denies or deny")
       end
@@ -48,25 +48,27 @@ module Rushiro
       grant, rest = perm.split(GSEP, 2)
       case grant
       when 'allows', 'allow'
-        @allows.remove_permission(rest) and @dirty = true
+        @allows.remove_permission(rest) and @changed = true
       when 'denies', 'deny'
-        @denies.remove_permission(rest) and @dirty = true
+        @denies.remove_permission(rest) and @changed = true
       else
         raise ArgumentError.new("Could not remove permission for type: #{grant}, use allows,allow,denies or deny")
       end
     end
 
     def serialize
-      unless @dirty
+      unless @changed
         @original
       else
         Hash[:name, @name, :allows, @allows.serialize, :denies, @denies.serialize]
       end
     end
 
-    def no_longer_dirty
-      @dirty = false
+    def no_longer_changed
+      @changed = false
     end
+
+    alias :changed? :changed
   end
 
 end
