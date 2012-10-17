@@ -96,19 +96,20 @@ module Rushiro
   end
 
   describe "Using a mix of main vs subordinate Access Control" do
-    let(:access_control) { DenyBasedControl.new(acl)}
-    let(:sub_control) { AllowBasedControl.new(sub_acl)}
+    let(:control_d) { DenyBasedControl.new(acl1)}
+    let(:control_a) { AllowBasedControl.new(acl2)}
+    let(:acl1) { Hash[:name, "acl1"] }
+    let(:acl2) { Hash[:name, "acl2"] }
     describe "with subordinate having set permissions" do
-      let(:acl) { Hash.new }
-      let(:sub_acl) { Hash[:name, 'Sub4test'] }
       it "should allow some" do
-        access_control.add_permission("denies|organization|company|acme-123|*|event")
-        sub_control.add_permission("allows|system|*")
-        access_control.add_subordinate(sub_control)
-        access_control.permitted?("page|view|posts").should be_true
-        access_control.permitted?("company|acme-123|edit|event").should be_false
-        access_control.serialize.should_not == {}
-        access_control.dirty.should be_true
+        control_a.add_permission("allows|system|admin")
+        control_d.add_permission("denies|organization|company|acme-123|*|event")
+        control_a.add_subordinate(control_d)
+        control_a.permitted?("page|view|posts").should be_true
+        control_a.permitted?("company|acme-123|edit|event").should be_false
+        control_a.permitted?("admin|*|reset").should be_true
+        control_a.serialize.should_not == {}
+        control_a.dirty.should be_true
       end
     end
   end

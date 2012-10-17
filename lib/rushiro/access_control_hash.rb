@@ -21,13 +21,13 @@ module Rushiro
 
     def permitted?(perm)
       return denying? if pristine?
+      return subordinates_permitted?(perm) unless subordinates.empty?
       rules = allowing? ? @allows : @denies
-      return allowing? if rules.permitted?(perm)
-      subordinates_permitted?(perm)
+      rules.permitted?(perm) ? allowing? : denying?
     end
 
     def pristine?
-      subordinates.empty? && !@dirty && @original.empty?
+      !@dirty && @original.empty?
     end
 
     def subordinates_permitted?(perm)
