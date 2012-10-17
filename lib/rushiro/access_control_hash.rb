@@ -21,11 +21,6 @@ module Rushiro
     end
 
     def subordinates_permitted?(perm)
-      return false if @subordinates.empty?
-      @subordinates.each do |sub|
-        return true if sub.permitted?(perm)
-      end
-      false
     end
 
     def add_subordinate(sub)

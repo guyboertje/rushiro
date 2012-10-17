@@ -8,7 +8,7 @@ module Rushiro
       it "should deny all" do
         access_control.permitted?("page|view|posts").should be_true
         access_control.serialize.should == {}
-        access_control.dirty.should be_false
+        access_control.changed.should be_false
       end
     end
 
@@ -16,11 +16,11 @@ module Rushiro
       let(:acl) { Hash.new }
       it "should add the permission" do
         access_control.add_permission("denies|individual|company|edit|acme-123")
-        access_control.dirty.should be_true
+        access_control.changed.should be_true
         access_control.serialize.should_not == {}
-        access_control.permitted?("page|view|posts").should be_true
         access_control.permitted?("company|view|acme-125").should be_true
         access_control.permitted?("company|edit|acme-123").should be_false
+        access_control.permitted?("page|view|posts").should be_true
       end
     end
 
@@ -47,7 +47,7 @@ module Rushiro
       it "should deny all" do
         access_control.permitted?("page|view|posts").should be_false
         access_control.serialize.should == {}
-        access_control.dirty.should be_false
+        access_control.changed.should be_false
       end
     end
 
@@ -79,7 +79,7 @@ module Rushiro
     end
   end
 
-  describe "Using a subordinate Access Control" do
+  describe "Using Allow based chain" do
     let(:access_control) { AllowBasedControl.new(acl)}
     let(:sub_control) { AllowBasedControl.new(sub_acl)}
     describe "with subordinate having set permissions" do
@@ -90,7 +90,24 @@ module Rushiro
         access_control.add_subordinate(sub_control)
         access_control.permitted?("page|view|posts").should be_true
         access_control.serialize.should == {}
-        access_control.dirty.should be_false
+        access_control.changed.should be_false
+      end
+    end
+  end
+
+  describe "Using Deny based chain" do
+    let(:access_control) { DenyBasedControl.new(acl)}
+    let(:sub_control) { DenyBasedControl.new(sub_acl)}
+    describe "with subordinate having set permissions" do
+      let(:acl) { Hash.new }
+      let(:sub_acl) { Hash[:name, 'Sub4test'] }
+      it "should deny some" do
+        sub_control.add_permission("denies|system|admin")
+        access_control.add_subordinate(sub_control)
+        access_control.permitted?("admin|view|users").should be_false
+        access_control.permitted?("page|view|posts").should be_true
+        access_control.serialize.should == {}
+        access_control.changed.should be_false
       end
     end
   end
