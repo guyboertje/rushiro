@@ -11,7 +11,6 @@ module Rushiro
       @original = hash
       @allow_subs = []
       @deny_subs  = []
-      @subordinates = []
       @kind = nil
     end
 
@@ -21,19 +20,19 @@ module Rushiro
 
     def permitted?(perm)
       return denying? if pristine?
-      return subordinates_permitted?(perm) unless subordinates.empty?
       rules = allowing? ? @allows : @denies
-      rules.permitted?(perm) ? allowing? : denying?
+      return allowing? if rules.permitted?(perm)
+      subordinates_permitted?(perm)
     end
 
     def pristine?
-      !@dirty && @original.empty?
+      !@dirty && @original.empty? && subordinate_size == 0
     end
 
     def subordinates_permitted?(perm)
-      return denying? if subordinates.empty?
+      return denying? if subordinate_size == 0
       @deny_subs.each do |sub|
-        return false if sub.permitted?(perm)
+        return false if !sub.permitted?(perm)
       end
       @allow_subs.each do |sub|
         return true if sub.permitted?(perm)
@@ -52,6 +51,10 @@ module Rushiro
     def add_subordinate(sub)
       @allow_subs << sub if sub.allowing?
       @deny_subs << sub if sub.denying?
+    end
+
+    def subordinate_size
+      @allow_subs.size + @deny_subs.size
     end
 
     def add_permission(perm) #as string "allow|individual|domain(|action(|instance))"

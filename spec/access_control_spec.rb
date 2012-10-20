@@ -101,15 +101,15 @@ module Rushiro
     let(:acl1) { Hash[:name, "acl1"] }
     let(:acl2) { Hash[:name, "acl2"] }
     describe "with subordinate having set permissions" do
-      it "should allow some" do
+      before do
         control_a.add_permission("allows|system|admin")
         control_d.add_permission("denies|organization|company|acme-123|*|event")
         control_a.add_subordinate(control_d)
+      end
+      it "should allow some" do
         control_a.permitted?("page|view|posts").should be_true
         control_a.permitted?("company|acme-123|edit|event").should be_false
         control_a.permitted?("admin|*|reset").should be_true
-        control_a.serialize.should_not == {}
-        control_a.dirty.should be_true
       end
     end
   end
